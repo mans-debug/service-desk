@@ -1,0 +1,42 @@
+version: "3.9"
+services:
+  postgres:
+    container_name: postgres_container
+    image: postgres:14.8-alpine3.18
+    environment:
+      POSTGRES_DB: "service_desk"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+      - pgdata:/var/lib/postgresql/data
+      - ./sql/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./sql/postgresql.conf:/etc/postgresql/postgresql.conf
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d service_desk"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - postgres
+
+  app:
+    build: .
+    image: service-desk
+    networks:
+      - postgres
+    depends_on:
+      - postgres
+
+
+volumes:
+  pgdata:
+
+networks:
+  postgres:
+    driver: bridge
