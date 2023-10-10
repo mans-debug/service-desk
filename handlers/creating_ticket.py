@@ -106,7 +106,7 @@ async def choose_title(msg: Message, state: FSMContext):
     await state.update_data(page=1)
     await msg.answer(
         text="Choose organization",
-        reply_markup=org_buttons(ticket_service.org_names(), 0),
+        reply_markup=org_buttons(ticket_service.db_org_names(), 0),
     )
 
 
@@ -120,7 +120,7 @@ async def next_org(msg: Message, state: FSMContext):
     await state.update_data(page=data["page"] + 1)
 
 
-@router.message(TicketChoice.choose_org, F.text.in_(ticket_service.org_names()))
+@router.message(TicketChoice.choose_org, F.text.in_(ticket_service.db_org_names()))
 async def org_chosen(msg: Message, state: FSMContext):
     await state.update_data(org=msg.text)
     await state.set_state(TicketChoice.insert_text)
