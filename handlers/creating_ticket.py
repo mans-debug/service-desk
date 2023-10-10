@@ -50,6 +50,7 @@ def cycleable_buttons(l):
 
 @router.message(F.text.lower() == "тикет")
 async def cmd_template_name(msg: Message, state: FSMContext):
+    print("I was here")
     await msg.answer(
         text="Choose temlate",
         reply_markup=template_name_keyboard(tmplt_s.template_names(), 0),
@@ -130,13 +131,20 @@ async def org_chosen(msg: Message, state: FSMContext):
 async def text_inserted(msg: Message, state: FSMContext):
     data = await state.get_data()
     organizations = jira_client.get_organizations()["values"]
-    org_id = next(filter(lambda x: x["name"] == data["org"], organizations))["id"]
+    org_id = ticket_service.find_ord_by_name(data["org"])
     jira_resp = jira_client.create_ticket(data["title"], msg.text, int(org_id))
     print(jira_resp)
-    url = "https://starfish24.atlassian.net/browse/" + jira_resp["key"]
-    await msg.answer(
-        parse_mode=ParseMode.HTML,
-        text=url,
-        reply_markup=default_keyboard(),
-    )
+    if "key" in jira_resp:
+        url = "https://starfish24.atlassian.net/browse/" + jira_resp["key"]
+        await msg.answer(
+            parse_mode=ParseMode.HTML,
+            text=url,
+            reply_markup=default_keyboard(),
+        )
+    else:
+        await msg.answer(
+            parse_mode=ParseMode.HTML,
+            text="\n".join(jira_resp["errorMessages"]),
+            reply_markup=default_keyboard(),
+        )
     await state.clear()
