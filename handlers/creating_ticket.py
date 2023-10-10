@@ -115,7 +115,7 @@ async def next_org(msg: Message, state: FSMContext):
     data = await state.get_data()
     await msg.answer(
         text="Choose organization",
-        reply_markup=org_buttons(ticket_service.org_names(), data["page"]),
+        reply_markup=org_buttons(ticket_service.db_org_names(), data["page"]),
     )
     await state.update_data(page=data["page"] + 1)
 
